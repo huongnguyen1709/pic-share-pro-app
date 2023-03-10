@@ -14,11 +14,12 @@ const Login = () => {
   const googleSuccess = (response) => {
     console.log(response);
     const decoded = jwt_decode(response.credential);
-    const { name, picture, sub } = decoded;
-    localStorage.setItem('user', JSON.stringify(decoded));
+    console.log('decoded', decoded);
+    const { name, picture, sub: googleId } = decoded;
+    localStorage.setItem('user', JSON.stringify({ name, picture, googleId }));
 
     const doc = {
-      _id: sub,
+      _id: googleId,
       _type: 'user',
       userName: name,
       image: picture,
