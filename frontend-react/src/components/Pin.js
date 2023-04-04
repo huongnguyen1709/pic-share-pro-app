@@ -47,8 +47,6 @@ const Pin = ({ pin: { postedBy, image, _id, destination, save } }) => {
     });
   };
 
-  console.log(postedBy);
-
   return (
     <div className='m-2'>
       <div
