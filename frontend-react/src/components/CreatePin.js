@@ -19,7 +19,33 @@ const CreatePin = ({ user }) => {
 
   const navigate = useNavigate();
 
-  const uploadImage = (e) => {};
+  const uploadImage = (e) => {
+    const { type, name } = e.target.files[0];
+
+    if (
+      type === 'image/png' ||
+      type === 'image/svg' ||
+      type === 'image/jpeg' ||
+      type === 'image/gif' ||
+      type === 'image/tiff'
+    ) {
+      setWrongImageType(false);
+      setLoading(true);
+
+      client.assets
+        .upload('image', e.target.files[0], {
+          contentType: type,
+          filename: name,
+        })
+        .then((document) => {
+          setImageAsset(document);
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.log('Image upload error', error);
+        });
+    } else setWrongImageType(true);
+  };
 
   return (
     <div className='flex flex-col justify-center items-center mt-5 lg:h-4/5'>
