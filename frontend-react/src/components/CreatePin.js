@@ -47,7 +47,36 @@ const CreatePin = ({ user }) => {
     } else setWrongImageType(true);
   };
 
-  const savePin = () => {};
+  const savePin = () => {
+    if (title && about && destination && imageAsset?._id && category) {
+      const doc = {
+        _type: 'pin',
+        title,
+        about,
+        destination,
+        image: {
+          _type: 'image',
+          asset: {
+            _type: 'reference',
+            _ref: imageAsset?._id,
+          },
+        },
+        userId: user._id,
+        postedBy: {
+          _type: 'postedBy',
+          _ref: user._id,
+        },
+        category,
+      };
+
+      client.create(doc).then(() => {
+        navigate('/');
+      });
+    } else {
+      setFields(true);
+      setTimeout(() => setFields(false), 2000);
+    }
+  };
 
   return (
     <div className='flex flex-col justify-center items-center mt-5 lg:h-4/5'>
