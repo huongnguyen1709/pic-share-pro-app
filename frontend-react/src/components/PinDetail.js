@@ -13,30 +13,58 @@ const PinDetail = ({ user }) => {
   const [pinDetail, setPinDetail] = useState(null);
   const [comment, setComment] = useState('');
   const [addingComment, setAddingComment] = useState(false);
+
   const { pinId } = useParams();
 
   const fetchPinDetails = () => {
     let query = pinDetailQuery(pinId);
 
     if (query) {
-      client.fetch(query).then((data) => {
-        setPinDetail(data[0]);
+      client
+        .fetch(query)
+        .then((data) => {
+          if (data[0]) {
+            const newQuery = pinDetailMorePinQuery(data[0]);
+            setPinDetail(data[0]);
 
-        if (data[0]) {
-          query = pinDetailMorePinQuery(data[0]);
-
-          client.fetch(query).then((res) => setPins(res));
-        }
-      });
+            client.fetch(newQuery).then((res) => setPins(res));
+          }
+        })
+        .catch((err) => console.log('err', err));
     }
   };
 
   useEffect(() => {
     fetchPinDetails();
-    console.log(pinDetail);
   }, [pinId]);
 
-  if (!pinDetail) return <Spinner message='Loading pin ...' />;
+  if (!pinDetail || pinDetail === null)
+    return <Spinner message='Loading pin ...' />;
+
+  const addComment = () => {
+    if (comment) {
+      setAddingComment(true);
+      client
+        .patch(pinId)
+        .setIfMissing({ comments: [] })
+        .insert('after', 'comments[-1]', [
+          {
+            comment,
+            _key: uuidv4(),
+            postedBy: {
+              _type: 'postedBy',
+              _ref: user._id,
+            },
+          },
+        ])
+        .commit()
+        .then(() => {
+          fetchPinDetails();
+          setComment('');
+          setAddingComment(false);
+        });
+    }
+  };
 
   return (
     <div
@@ -95,18 +123,50 @@ const PinDetail = ({ user }) => {
         <h2 className='mt-5 text-2xl'>Comments</h2>
 
         <div className='max-h-370 overflow-y-auto'>
-          {pinDetail.comments.map((comment, index) => (
-            <div
-              className='flex gap-2 mt-5 items-center bg-white rounded-lg'
-              key={index}
-            >
-              <img
-                src={comment.postedBy.image}
-                alt='user-profile'
-                className='w-10 h-10 rounded-full cursor-pointer'
-              />
-            </div>
-          ))}
+          {pinDetail.comments &&
+            pinDetail.comments.map((comment, index) => (
+              <div
+                className='flex gap-2 mt-5 items-center bg-white rounded-lg'
+                key={index}
+              >
+                <img
+                  src={comment.postedBy.image}
+                  alt='user-profile'
+                  className='w-10 h-10 rounded-full cursor-pointer'
+                />
+
+                <div className='flex flex-col'>
+                  <p className='font-bold'>{comment.postedBy.userName}</p>
+                  <p>{comment.comment}</p>
+                </div>
+              </div>
+            ))}
+        </div>
+
+        <div className='flex flex-wrap mt-6 gap-3'>
+          <Link to={`user-profile/${pinDetail.postedBy?._id}`}>
+            <img
+              className='w-10 h-10 rounded-full cursor-pointer'
+              src={pinDetail.postedBy?.image}
+              alt='user-profile'
+            />
+          </Link>
+
+          <input
+            className='flex-1 border-gray-100 outline-none border-2 p-2 rounded-2xl focus:border-gray-300'
+            type='text'
+            placeholder='Add a comment'
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          />
+
+          <button
+            type='button'
+            className='bg-red-500 text-white rounded-full px-6 py-2 font-semibold text-base outline-none'
+            onClick={addComment}
+          >
+            {addingComment ? 'Posting the comment...' : 'Posted'}
+          </button>
         </div>
       </div>
     </div>
