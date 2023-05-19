@@ -17,20 +17,28 @@ const Feed = () => {
     if (categoryId) {
       const query = searchQuery(categoryId);
 
-      client.fetch(query).then((data) => {
-        setPins(data);
-        setLoading(false);
-      });
+      client
+        .fetch(query)
+        .then((data) => {
+          setPins(data);
+          setLoading(false);
+        })
+        .catch((err) => console.log(err));
     } else {
-      client.fetch(feedQuery).then((data) => {
-        setPins(data);
-        setLoading(false);
-      });
+      client
+        .fetch(feedQuery)
+        .then((data) => {
+          setPins(data);
+          setLoading(false);
+        })
+        .catch((err) => console.log(err));
     }
   }, [categoryId]);
 
   if (loaing)
     return <Spinner message='We are adding new ideas to your feed!' />;
+
+  if (!pins?.length) return <h2>No pins available</h2>;
 
   return <div>{pins && <MasonryLayout pins={pins} />}</div>;
 };
