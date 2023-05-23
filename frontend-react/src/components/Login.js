@@ -12,9 +12,8 @@ const Login = () => {
   const navigate = useNavigate();
 
   const googleSuccess = (response) => {
-    console.log(response);
     const decoded = jwt_decode(response.credential);
-    console.log('decoded', decoded);
+
     const { name, picture, sub: googleId } = decoded;
     localStorage.setItem('user', JSON.stringify({ name, picture, googleId }));
 
